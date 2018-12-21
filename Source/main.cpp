@@ -2,12 +2,20 @@
 
 using namespace std;
 
-void generator(double* &MatrixA, double* &MatrixB, double* &MatrixC1, int N) {
+void generator_opt(double* &MatrixA, double* &MatrixB, double* &MatrixC, int N) {
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
 			MatrixA[i*N + j] = rand() % 100;
 			MatrixB[i*N + j] = rand() % 100;
-			MatrixC1[i*N + j] = 0;
+			MatrixC[i*N + j] = 0;
+		}
+	}
+}
+void generator_not_opt(double* MatrixA, double* MatrixB, int N) {
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			MatrixA[i*N + j] = rand() % 100;
+			MatrixB[i*N + j] = rand() % 100;
 		}
 	}
 }
@@ -23,7 +31,8 @@ void multiplication_optimize(double* &MatrixA, double* &MatrixB, double* &Matrix
 							MatrixC1[i*Size + j] += MatrixA[i*Size + k] * MatrixB[k*Size + j];
 }
 
-void multiplication_not_optimize(double* &MatrixA, double* &MatrixB, double* &MatrixC, int N) {
+double* multiplication_not_optimize(double* MatrixA, double* MatrixB, int N) {
+	double* MatrixC = new double[N*N];
 	for (int i = 0; i<N; i++) {
 		for (int j = 0; j<N; j++) {
 			MatrixC[i*N + j] = 0;
@@ -32,37 +41,32 @@ void multiplication_not_optimize(double* &MatrixA, double* &MatrixB, double* &Ma
 			}
 		}
 	}
-}
-
-void multiplication_column(double* &MatrixA, double* &MatrixB, double* &MatrixC2, int N) {
-	int i, j;
-	for (int i = 0; i < N*N; i++) {
-		MatrixC2[i] = 0;
-	}
-	for (i = 0; i<N; i++) { 
-		for (int k = 0; k < N; k++) {
-			for (j = 0; j < N; j++)
-				MatrixC2[j*N + k] += MatrixA[j*N + i] * MatrixB[i*N + k];
-		}
-	}
-
+	return MatrixC;
 }
 
 int main(int argc, char** argv) {
-#if 1
 	int Size = 2000;
-	double* MatrixA = new double[Size*Size];
-	double* MatrixB = new double[Size*Size];
-	double* MatrixC = new double[Size*Size];
-
-	generator(MatrixA, MatrixB, MatrixC, Size);
-#endif
 	int version = atoi(argv[1]);
 	if (version == 0) {
+		double* MatrixA = new double[Size*Size];
+		double* MatrixB = new double[Size*Size];
+	    double* MatrixC = new double[Size*Size];
+
+		generator_opt(MatrixA, MatrixB, MatrixC, Size);
 		multiplication_optimize(MatrixA, MatrixB, MatrixC, Size);
+		delete[] MatrixA;
+		delete[] MatrixB;
+		delete[] MatrixC;
 	}
 	else if (version == 1) {
-		//multiplication_not_optimize(MatrixA, MatrixB, MatrixC1, Size);
-		multiplication_column(MatrixA, MatrixB, MatrixC, Size);
+		double* MatrixA = (double*)malloc(Size*Size * sizeof(double));
+		double* MatrixC = (double*)malloc(Size*Size * sizeof(double));
+		double* MatrixB = (double*)malloc(Size*Size * sizeof(double)); 
+
+		generator_not_opt(MatrixA, MatrixB, Size);
+		MatrixC = multiplication_not_optimize(MatrixA, MatrixB, Size);
+		free(MatrixA);
+		free(MatrixB);
+		free(MatrixC);
 	}
 }
